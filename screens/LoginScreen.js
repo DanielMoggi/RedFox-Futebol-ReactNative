@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,37 +7,66 @@ import {
   StyleSheet,
   Image,
   ImageBackground,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+} from "react-native";
+import * as SecureStore from "expo-secure-store";
+import { useSetRecoilState } from "recoil";
+import api from "../services/api";
+import { userState } from "../services/recoilAuth";
 
-const LoginScreen = () => {
-  const navigation = useNavigation();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+export default function Login({ navigation }) {
+  const [email, setEmail] = useState("daniel@daniel.com");
+  const [password, setPassword] = useState("Americana2005");
+  const [errorMsg, setErrorMsg] = useState(null);
 
-  const handleLogin = () => {
-    const correctUsername = 'usuario';
-    const correctPassword = 'senha';
+  const setUser = useSetRecoilState(userState);
 
-    if (username === correctUsername && password === correctPassword) {
-      navigation.navigate('Home');
-    } else {
-      alert('Login failed. Please check your username and password.');
+  class LoginApi {
+    async login(email, password) {
+      try {
+        const { data } = await api.post("/token/", {
+          email,
+          password,
+        });
+        return Promise.resolve(data);
+      } catch (error) {
+        return Promise.error(error);
+      }
+    }
+  }
+
+  const login = async () => {
+    try {
+      const data = await new LoginApi().login(email, password);
+      setUser({
+        loggedIn: true,
+        access: data.access,
+        refresh: data.refresh,
+      });
+      setEmail("");
+      setPassword("");
+      setErrorMsg(null);
+      await SecureStore.setItemAsync("access", data.access);
+
+      navigation.navigate("Home");
+    } catch (error) {
+      setUser({ loggedIn: false, access: null, refresh: null });
+      setErrorMsg("Email ou senha inválidos!");
+      await SecureStore.deleteItemAsync("access");
     }
   };
 
   const handleCadastro = () => {
-    navigation.navigate('Cadastro');
+    navigation.navigate("Cadastro");
   };
 
   // Função para verificar se o botão de Login deve estar habilitado
   const isLoginButtonDisabled = () => {
-    return !(username.trim() && password.trim());
+    return !(email.trim() && password.trim());
   };
 
   return (
     <ImageBackground
-      source={require('./img/estadio.jpg')}
+      source={require("./img/estadio.jpg")}
       style={styles.imageBackground}
     >
       <View style={styles.bodyContainer}>
@@ -45,7 +74,7 @@ const LoginScreen = () => {
           <View style={styles.profileImage}>
             <Image
               style={styles.roundedImage}
-              source={require('./img/pngfind.com-bite-mark-png-631239.png')}
+              source={require("./img/pngfind.com-bite-mark-png-631239.png")}
             />
           </View>
 
@@ -55,9 +84,9 @@ const LoginScreen = () => {
             <View style={styles.inputWrapper}>
               <TextInput
                 style={styles.inputField}
-                placeholder="Usuário"
-                value={username}
-                onChangeText={(text) => setUsername(text)}
+                placeholder="Email"
+                value={email}
+                onChangeText={(text) => setEmail(text)}
               />
             </View>
 
@@ -74,15 +103,20 @@ const LoginScreen = () => {
             <TouchableOpacity
               style={[
                 styles.loginButton,
-                { backgroundColor: isLoginButtonDisabled() ? '#ccc' : '#27ae60' },
+                {
+                  backgroundColor: isLoginButtonDisabled() ? "#ccc" : "#27ae60",
+                },
               ]}
-              onPress={handleLogin}
+              onPress={login}
               disabled={isLoginButtonDisabled()}
             >
               <Text style={styles.loginButtonText}>Login</Text>
             </TouchableOpacity>
-
-            <TouchableOpacity style={styles.CadastroButton} onPress={handleCadastro}>
+            <Text style={{ color: "#FFFF" }}>{errorMsg}</Text>
+            <TouchableOpacity
+              style={styles.CadastroButton}
+              onPress={handleCadastro}
+            >
               <Text style={styles.CadastroButtonText}>
                 Clique aqui para criar uma conta
               </Text>
@@ -92,21 +126,21 @@ const LoginScreen = () => {
       </View>
     </ImageBackground>
   );
-};
+}
 
 const styles = StyleSheet.create({
   bodyContainer: {
-    justifyContent: 'center',
-    height: '80%',
-    width: '100%',
+    justifyContent: "center",
+    height: "80%",
+    width: "100%",
   },
   loginContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   profileImage: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 20,
   },
   roundedImage: {
@@ -119,13 +153,13 @@ const styles = StyleSheet.create({
   },
   imageBackground: {
     flex: 1,
-    resizeMode: 'cover',
+    resizeMode: "cover",
   },
   loginCard: {
-    backgroundColor: 'white',
-    borderColor: 'black',
+    backgroundColor: "white",
+    borderColor: "black",
     borderRadius: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
     shadowRadius: 20,
@@ -135,28 +169,28 @@ const styles = StyleSheet.create({
   loginTitle: {
     fontSize: 28,
     marginBottom: 20,
-    textAlign: 'center',
-    color: '#333',
+    textAlign: "center",
+    color: "#333",
   },
   inputField: {
-    width: '100%',
+    width: "100%",
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#dcdcdc',
+    backgroundColor: "#dcdcdc",
     borderRadius: 5,
     marginBottom: 15,
-    color: 'grey',
+    color: "grey",
   },
   loginButton: {
-    backgroundColor: '#27ae60',
+    backgroundColor: "#27ae60",
     borderRadius: 5,
     paddingVertical: 12,
     paddingHorizontal: 20,
   },
   loginButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
   CadastroButton: {
     borderRadius: 5,
@@ -164,10 +198,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   CadastroButtonText: {
-    color: 'blue',
+    color: "blue",
     fontSize: 10,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });
-
-export default LoginScreen;
