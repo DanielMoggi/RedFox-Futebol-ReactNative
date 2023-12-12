@@ -2,7 +2,7 @@ import axios from "axios";
 import { userState } from "../services/recoilAuth";
 import { getRecoil } from "recoil-nexus";
 const api = axios.create({
-  baseURL: "http://191.52.55.20:19003/api/",
+  baseURL: "https://redfox-futebol-backend-dev-jsmd.4.us-1.fl0.io/api",
   headers: {
     "Content-Type": "application/json",
   },

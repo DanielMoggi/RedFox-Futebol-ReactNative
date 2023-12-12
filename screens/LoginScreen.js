@@ -23,12 +23,16 @@ export default function Login({ navigation }) {
   class LoginApi {
     async login(email, password) {
       try {
+        console.info("Posting");
         const { data } = await api.post("/token/", {
           email,
           password,
         });
+
+        console.log(data);
         return Promise.resolve(data);
       } catch (error) {
+        console.log(error);
         return Promise.error(error);
       }
     }
@@ -36,7 +40,9 @@ export default function Login({ navigation }) {
 
   const login = async () => {
     try {
+      console.log("login", email, password);
       const data = await new LoginApi().login(email, password);
+      console.log("data", data);
       setUser({
         loggedIn: true,
         access: data.access,
@@ -113,14 +119,6 @@ export default function Login({ navigation }) {
               <Text style={styles.loginButtonText}>Login</Text>
             </TouchableOpacity>
             <Text style={{ color: "#FFFF" }}>{errorMsg}</Text>
-            <TouchableOpacity
-              style={styles.CadastroButton}
-              onPress={handleCadastro}
-            >
-              <Text style={styles.CadastroButtonText}>
-                Clique aqui para criar uma conta
-              </Text>
-            </TouchableOpacity>
           </View>
         </View>
       </View>

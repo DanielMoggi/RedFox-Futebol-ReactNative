@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import api from "../services/api";
 
 const IngressoScreen = () => {
   const navigation = useNavigation();
@@ -45,18 +46,6 @@ const IngressoScreen = () => {
     }
   };
 
-  const handleAdicionarAoCarrinho = () => {
-    // Lógica para adicionar ao carrinho (pode ser ajustada conforme necessário)
-    console.log("Ingressos adicionados ao carrinho!");
-    navigation.navigate("Historico");
-  };
-
-  const handleConfirmarCompra = () => {
-    if (totalPrice > 0) {
-      navigation.navigate("Pagamento");
-    }
-  };
-
   const selectedPrices = {
     padrao: {
       price: 50,
@@ -70,6 +59,27 @@ const IngressoScreen = () => {
       price: 150,
       description: "Ingresso Premium - Melhores assentos e benefícios extras",
     },
+  };
+
+  const [items, setItems] = useState(selectedPrices);
+
+  const handleAdicionarAoCarrinho = async () => {
+    try {
+      const response = await api.post("/ingressos/", {
+        partida: 1,
+        preco: totalPrice,
+      });
+
+      if (response.data) {
+        console.log(response.data);
+        console.log("Ingresso created successfully!");
+        navigation.navigate("Historico");
+      } else {
+        console.log("Failed to create ingresso");
+      }
+    } catch (error) {
+      console.log("Error creating ingresso:", error);
+    }
   };
 
   return (
@@ -123,20 +133,10 @@ const IngressoScreen = () => {
             styles.confirmPurchaseButton,
             { backgroundColor: totalPrice > 0 ? "#28a745" : "#ccc" },
           ]}
-          onPress={handleConfirmarCompra}
-          disabled={totalPrice <= 0}
-        >
-          <Text style={styles.confirmPurchaseButtonText}>Confirmar Compra</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.addToCartButton,
-            { backgroundColor: totalPrice > 0 ? "#28a745" : "#ccc" },
-          ]}
           onPress={handleAdicionarAoCarrinho}
           disabled={totalPrice <= 0}
         >
-          <Text style={styles.addToCartButtonText}>Adicionar ao Carrinho</Text>
+          <Text style={styles.confirmPurchaseButtonText}>Confirmar Compra</Text>
         </TouchableOpacity>
       </View>
     </View>
